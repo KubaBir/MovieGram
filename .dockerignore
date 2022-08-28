@@ -1,0 +1,17 @@
+#Git
+.git #wedontneedgitfileindocker
+
+.gitignore #wedontneedgitignoreindocker
+
+
+#Docker
+.docker #dockerhiddenfile
+
+#Python
+app/__pycache__/
+app/*/__pycache__/
+app/*/*/__pycache__/
+app/*/*/*/__pycache__/
+.env/
+.venv/
+venv/
