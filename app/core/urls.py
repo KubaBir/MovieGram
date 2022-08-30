@@ -1,7 +1,11 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
+from rest_framework.routers import SimpleRouter
+router=SimpleRouter()
+router.register('movies',views.MoviesViewSet)
+router.register('directors',views.DirectorViewSet)
+router.register('user-profiles',views.UserProfileViewSet)
+router.register('friends-profiles',views.FriendsProfilesViewSet)
 urlpatterns= [
-    path('movies/',views.MoviesListView.as_view()),
-    path('directors/',views.DirectorListView.as_view()),
-    path('user-top/',views.UserTopMoviesListView.as_view())
+    path('',include(router.urls))
 ]

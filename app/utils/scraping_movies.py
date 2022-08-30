@@ -42,7 +42,7 @@ def scraping_movies_func(filmweb_nick):
 
     for el in filmy:
         if models.Director.objects.filter(name=el[2]).exists() == False:
-            models.Director.objects.create(name=el[2])
+            models.Director.objects.create(name=el[2],wiki_link='https://nic.com')
         if models.Movie.objects.filter(title=el[0]).exists() == False:
             models.Movie.objects.create(title=el[0], genre=el[1], director=models.Director.objects.filter(name=el[2]).get(),
                                  year=el[3], description=el[4])
@@ -90,7 +90,7 @@ def adding_to_profile_func(filmweb_nick,user):
             filmy.append(movie)
         for el in filmy:
             obj = models.Movie.objects.filter(title=el[0]).get()
-            models.UserTopMovies.objects.create(user=user,top_movies=obj)
+            models.UserProfile.objects.filter(user=user).get().top_movies.add(obj)
 
 
 

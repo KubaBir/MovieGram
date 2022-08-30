@@ -52,33 +52,79 @@ class User(AbstractBaseUser,PermissionsMixin):
     USERNAME_FIELD='email'
 class Director(models.Model):
     name=models.CharField(max_length=255)
+    wiki_link=models.URLField(max_length=255,default=None,null=True)
+
+    def save(self,*args,**kwargs):
+        self.wiki_link = 'https://pl.wikipedia.org/wiki/{}_{}'.format(self.name.split()[0],self.name.split()[1])
+        super().save(*args,**kwargs)
 class Movie(models.Model):
     title=models.CharField(max_length=255)
-    # action='action'
-    # comedy='comedy'
-    # drama='drama'
-    # fantasy='fantasy'
-    # horror='horror'
-    # mystery='mystery'
-    # romance='romance'
-    # thriller='thriller'
-    # western='western'
-    # genre_choices = ((action,'action'),(comedy,'comedy'),(drama,'drama'),(fantasy,'fantasy'),(horror,'horror'),
-    #                  (mystery,'mystery'),(romance,'romance'),(thriller,'thriller'),(western,'western'))
     genre = models.CharField(max_length=255)
     director=models.ForeignKey(Director,on_delete=models.CASCADE)
     year=models.IntegerField()
     description=models.TextField()
 
 
-class UserTopMovies(models.Model):
+
+
+
+
+class FriendRequest(models.Model):
+    """1. Sender 2. Receiver"""
+    sender=models.ForeignKey(User,on_delete = models.CASCADE, related_name="sender")
+    receiver = models.ForeignKey(User,on_delete = models.CASCADE, related_name="receiver")
+    is_active = models.BooleanField(blank=True, null=False, default = True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def accept(self):
+        receiver_friend_list = UserProfile.objects.get(user=self.receiver)
+        if receiver_friend_list:
+            receiver_friend_list.add_friend(self.sender)
+            sender_friend_list = UserProfile.objects.get(user=self.sender)
+            if sender_friend_list:
+                sender_friend_list.add_friend(self.receiver)
+                self.is_active=False
+                self.save()
+    def decline(self):
+        """Receiver cancels"""
+        self.is_active=False
+        self.save()
+
+class Comment(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE)
-    top_movies=models.ForeignKey(Movie,on_delete=models.CASCADE, default=None,null=True)
+    comment_date=models.DateTimeField(auto_now_add=True)
+    text=models.CharField(max_length=255)
+class Post(models.Model):
+    user=models.ForeignKey(User,on_delete=models.CASCADE)
+    post_date = models.DateTimeField(auto_now_add=True)
+    title=models.CharField(max_length=255)
+    movie=models.ForeignKey(Movie,on_delete=models.DO_NOTHING)
+    text=models.TextField()
+    comments=models.ManyToManyField(Comment,default=None,blank=True)
+
+
+class UserProfile(models.Model):
+    user=models.OneToOneField(User,on_delete=models.CASCADE,related_name="user")
+    top_movies=models.ManyToManyField(Movie, default=None,)
+    last_watched=models.ManyToManyField(Movie,default=None,related_name='last_watched')
+    friends = models.ManyToManyField(User, blank=True,related_name="friends")
+    posts=models.ManyToManyField(Post, default=None)
+
+    def add_friend(self, account):
+
+        if not account in self.friends.all():
+            self.friends.add(account)
+    def remove_friend(self,account):
+        if account in self.friends.all():
+            self.friends.remove(account)
 
 @receiver(post_save,sender=User)
 def UserProfileCreator(sender, instance=None, created=False, **kwargs):
     if created:
+        UserProfile.objects.create(user=instance)
         scraping_movies.adding_to_profile_func(filmweb_nick=instance.filmweb_nick,user=instance)
+
+
 
 
 
