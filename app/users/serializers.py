@@ -18,7 +18,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self,validated_data):
         """Create and return a user with encrypted password"""
-        scraping_movies_func(self.validated_data['filmweb_nick'])
+        try:
+            scraping_movies_func(self.validated_data['filmweb_nick'])
+        except:
+            pass
 
 
         return get_user_model().objects.create_user(**validated_data)

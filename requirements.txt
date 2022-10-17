@@ -5,6 +5,3 @@ drf-spectacular>=0.22.1,<0.23
 requests
 bs4
 lxml
-celery
-redis
-django-celery-beat

@@ -5,6 +5,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 import sys
+from django.core.validators import MaxValueValidator, MinValueValidator
 from utils import scraping_movies
 sys.path.append('..')
 # Create your models here.
@@ -55,8 +56,12 @@ class Director(models.Model):
     wiki_link=models.URLField(max_length=255,default=None,null=True)
 
     def save(self,*args,**kwargs):
-        self.wiki_link = 'https://pl.wikipedia.org/wiki/{}_{}'.format(self.name.split()[0],self.name.split()[1])
-        super().save(*args,**kwargs)
+        # funkcja odpowiedzialna za generowanie linku do wikipedii danego rezysera
+        try:
+            self.wiki_link = 'https://pl.wikipedia.org/wiki/{}_{}'.format(self.name.split()[0],self.name.split()[1])
+            super().save(*args,**kwargs)
+        except:
+            pass
 class Movie(models.Model):
     title=models.CharField(max_length=255)
     genre = models.CharField(max_length=255)
@@ -70,7 +75,6 @@ class Movie(models.Model):
 
 
 class FriendRequest(models.Model):
-    """1. Sender 2. Receiver"""
     sender=models.ForeignKey(User,on_delete = models.CASCADE, related_name="sender")
     receiver = models.ForeignKey(User,on_delete = models.CASCADE, related_name="receiver")
     is_active = models.BooleanField(blank=True, null=False, default = True)
@@ -100,6 +104,7 @@ class Post(models.Model):
     title=models.CharField(max_length=255)
     movie=models.ForeignKey(Movie,on_delete=models.DO_NOTHING)
     text=models.TextField()
+    rate=models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(10)])
     comments=models.ManyToManyField(Comment,default=None,blank=True)
 
 
@@ -120,7 +125,7 @@ class UserProfile(models.Model):
 
 @receiver(post_save,sender=User)
 def UserProfileCreator(sender, instance=None, created=False, **kwargs):
-    if created:
+    if created and instance.filmweb_nick != '':
         UserProfile.objects.create(user=instance)
         scraping_movies.adding_to_profile_func(filmweb_nick=instance.filmweb_nick,user=instance)
 

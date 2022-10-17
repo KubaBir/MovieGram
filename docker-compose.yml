@@ -17,7 +17,6 @@ services:
     env_file:
       - ./.env/.dev-sample
     depends_on:
-      - redis
       - db
 
   db:
@@ -29,30 +28,6 @@ services:
       - POSTGRES_USER=hello_django
       - POSTGRES_PASSWORD=hello_django
 
-  redis:
-      image: redis:6-alpine
-  celery:
-      build:
-        context: .
-      command: celery -A app worker -l info
-      volumes:
-        - ./app:/app
-      env_file:
-        - ./.env/.dev-sample
-      depends_on:
-        - redis
-        - db
-  celery-beat:
-      build:
-        context: .
-      command: celery -A app beat -l info
-      volumes:
-        - ./app:/app
-      env_file:
-        - ./.env/.dev-sample
-      depends_on:
-        - redis
-        - db
 
 volumes:
     postgres_data:
