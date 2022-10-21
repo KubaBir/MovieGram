@@ -59,8 +59,9 @@ class Director(models.Model):
     def save(self, *args, **kwargs):
         # funkcja odpowiedzialna za generowanie linku do wikipedii danego rezysera
         try:
-            self.wiki_link = 'https://pl.wikipedia.org/wiki/{}_{}'.format(
-                self.name.split()[0], self.name.split()[1])
+            link_name = self.name.replace(' ', '_')
+            self.wiki_link = f'https://pl.wikipedia.org/wiki/{link_name}'
+
             super().save(*args, **kwargs)
         except:
             pass
@@ -117,7 +118,7 @@ class Post(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.DO_NOTHING)
     text = models.TextField()
     rate = models.IntegerField(default=0, validators=[
-                               MinValueValidator(0), MaxValueValidator(10)])
+        MinValueValidator(0), MaxValueValidator(10)])
     comments = models.ManyToManyField(Comment, default=None, blank=True)
 
 
@@ -127,7 +128,8 @@ class UserProfile(models.Model):
     top_movies = models.ManyToManyField(Movie, default=None)
     last_watched = models.ManyToManyField(
         Movie, default=None, related_name='last_watched')
-    friends = models.ManyToManyField(User, blank=True, related_name="friends")
+    friends = models.ManyToManyField(
+        User, blank=True, related_name="friends")
     posts = models.ManyToManyField(Post, default=None)
 
     def __str__(self):
@@ -143,7 +145,7 @@ class UserProfile(models.Model):
             self.friends.remove(account)
 
 
-@receiver(post_save, sender=User)
+@ receiver(post_save, sender=User)
 def UserProfileCreator(sender, instance=None, created=False, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
