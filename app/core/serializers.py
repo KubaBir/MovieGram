@@ -1,5 +1,6 @@
 
-from rest_framework import serializers
+import requests
+from rest_framework import serializers, status
 
 from .models import Comment, Director, FriendRequest, Movie, Post, UserProfile
 
@@ -10,10 +11,24 @@ class MovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
         fields = '__all__'
+        # read_only_fields = ['director', 'genre', 'year', 'description']
+
+
+class AddMovieSerializer(serializers.Serializer):
+    link = serializers.CharField()
+
+    class Meta:
+        model = Movie
+        fields = ['link']
+
+    def validate_link(self, attrs):
+        response = requests.get(attrs)
+        if response.status_code == status.HTTP_400_BAD_REQUEST or not attrs.startswith('https://www.filmweb.pl/film/'):
+            raise serializers.ValidationError('Provide filmweb link')
+        return attrs
 
 
 class DirectorSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Director
         fields = ['name']
