@@ -8,6 +8,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from users.tasks import append_movies
 from utils import scraping_movies
 
 sys.path.append('..')
@@ -64,7 +65,7 @@ class Director(models.Model):
 
             super().save(*args, **kwargs)
         except:
-            pass
+            print('Could not find director wiki page.')
 
     def __str__(self):
         return self.name
@@ -151,5 +152,7 @@ def UserProfileCreator(sender, instance=None, created=False, **kwargs):
         UserProfile.objects.create(user=instance)
 
         if instance.filmweb_nick != '':
-            scraping_movies.adding_to_profile_func(
-                filmweb_nick=instance.filmweb_nick, user=instance)
+            # scraping_movies.adding_to_profile_func(
+            #     filmweb_nick=instance.filmweb_nick, user=instance)
+            append_movies.delay(
+                filmweb_nick=instance.filmweb_nick)
