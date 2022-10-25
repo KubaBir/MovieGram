@@ -11,8 +11,7 @@ def scraping_movies_func(filmweb_nick):
     for a in soup.select('.filmPoster__filmLink', href=True):
         if len(top_filmy) < 6:
             top_filmy.append(a['href'])
-        else:
-            pass
+    
 
     print(top_filmy)
 
@@ -73,7 +72,7 @@ def adding_to_profile_func(filmweb_nick,user):
                                                     'dramat','mystery', 'romance', 'melodramat', 'psychologiczny',
                                                     'komedia','kostiumowy','przygodowy','erotyczny','dokumentalny','sensacyjny',
                                                     'obyczajowy','wojenny', 'dramat historyczny','kryminał','sci-fi','dramat obyczajowy',
-                                                    'gangsterski','animacja']:
+                                                    'gangsterski','animacja','fantasy']:
                     movie.append(a3.getText().lower().strip())
                     break
 
@@ -84,11 +83,34 @@ def adding_to_profile_func(filmweb_nick,user):
             for a6 in soup1.find("span", itemprop="description"):
                 movie.append(a6.getText())
             suma=0
-
-
-
             filmy.append(movie)
+        
+        gatunki = {"akcja": ['sensacyjny','wojenny','kryminał','gangsterski','fantasy','akcja',"western","true crime","sztuki walki",'szpiegowski','film-noir'],
+         "przygodowy": ['przygodowy','familijny'], "romans": ["erotyczny", "romans","XXX"], "dramat": ["obyczajowy",'melodramat', 'dramat obyczajowy','dramat historyczny',
+        'kostiumowy','psychologiczny','dramat','surrealistyczny','sportowy','religijny','dramat sądowy'],"animacja":['animacja','anime','animacja dla dorosłych'],'sci-fi':['sci-fi'],
+        'komedia':['komedia','satyra','komedia rom.','komedia obycz.','komedia kryminalna','groteska filmowa','czarna komedia'],
+        'krotkometrazowy':['krótkometrażowy'], "horror": ['horror'], "thriller": ["thriller"],"dokumentalny": ["dokumentalny",'przyrodniczy','historyczny','dokumentalizowany'],
+        "swiateczny":['świąteczny'],'polityczny':['propagandowy','polityczny'],'artystyczny':['poetycki','muzyczny','musical'] }
+       
+        
+
+
+
+
         for el in filmy:
+            if models.Director.objects.filter(name=el[2]).exists() == False:
+                models.Director.objects.create(name=el[2],wiki_link='https://nic.com')
+            if models.Movie.objects.filter(title=el[0]).exists() == False:
+                gatunek = ''
+                found = False
+                for key, val in gatunki.items():
+                    if el[1] in val:
+                        found = True
+                        gatunek = key
+                if not found:
+                    gatunek = 'inne'
+                models.Movie.objects.create(title=el[0], genre=gatunek, director=models.Director.objects.filter(name=el[2]).get(),
+                                 year=el[3], description=el[4])
             obj = models.Movie.objects.filter(title=el[0]).get()
             models.UserProfile.objects.filter(user=user).get().top_movies.add(obj)
 

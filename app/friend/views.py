@@ -59,6 +59,12 @@ class FriendRequestViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         if models.FriendRequest.objects.filter(sender=self.request.user, receiver=serializer.validated_data['receiver']).exists():
             return Response({"Status": "You have sent this invite already"})
+        if serializer.validated_data['receiver'] in models.UserProfile.objects.filter(user=self.request.user).get().friends.all():
+            return Response({"Status": "The User is already in your friends "})
+        if serializer.validated_data['receiver'] == self.request.user:
+            return Response({"Status": "You cant send a user invite to yourself "})
+        if models.FriendRequest.objects.filter(sender=serializer.validated_data['receiver'], receiver=self.request.user).exists():
+            return Response({"Status": "User has invited you already"})
         self.perform_create(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
