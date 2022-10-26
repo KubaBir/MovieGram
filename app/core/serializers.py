@@ -56,23 +56,43 @@ class AcceptingFriendRequestSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    post_id = serializers.IntegerField(write_only=True)
+    user = serializers.CharField(source='user.name')
+
     class Meta:
         model = Comment
-        fields = ['user', 'comment_date', 'text']
-        extra_kwargs = {
-            "user": {"read_only": True},
-            "comment_date": {"read_only": True}
-        }
+        fields = ['post_id', 'user', 'comment_date', 'text']
+        read_only_fields = ['user', 'comment_date']
+
+    def create(self, validated_data):
+        post_id = validated_data.pop('post_id')
+        post = Post.objects.get(id=post_id)
+        instance = Comment.objects.create(**validated_data)
+        post.comments.add(instance)
+        return instance
 
 
-class PostCreatingSerializer(serializers.ModelSerializer):
+class PostSerializer(serializers.ModelSerializer):
+    movie = serializers.CharField()
+    user = serializers.CharField(source='user.name')
+    comments = CommentSerializer(many=True, required=False)
+
     class Meta:
         model = Post
-        fields = ['user', 'post_date', 'title', 'movie', 'text']
-        extra_kwargs = {
-            "user": {"read_only": True},
-            'post_date': {"read_only": True}
-        }
+        fields = '__all__'
+        read_only_fields = ['user', 'comments', 'post_date']
+
+    def create(self, validated_data):
+        movie = validated_data.pop('movie')
+        movie_instance = Movie.objects.get(title=movie)
+        instance = Post.objects.create(movie=movie_instance, **validated_data)
+        return instance
+
+    def validate_movie(self, field):
+        field = field.capitalize()
+        if not Movie.objects.filter(title=field).exists():
+            raise serializers.ValidationError('Could not find provided movie.')
+        return field
 
 
 class PostListingSerializer(serializers.ModelSerializer):

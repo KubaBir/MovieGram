@@ -122,6 +122,9 @@ class Post(models.Model):
         MinValueValidator(0), MaxValueValidator(10)])
     comments = models.ManyToManyField(Comment, default=None, blank=True)
 
+    def __str__(self):
+        return f"{self.user.name}, {self.title}"
+
 
 class UserProfile(models.Model):
     user = models.OneToOneField(

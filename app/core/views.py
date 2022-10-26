@@ -1,3 +1,5 @@
+from xml.etree.ElementTree import Comment
+
 from requests import request
 from rest_framework import mixins, status, viewsets
 from rest_framework.authentication import TokenAuthentication
@@ -6,7 +8,7 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
 from . import serializers
-from .models import Director, Movie, Post, UserProfile
+from .models import Comment, Director, Movie, Post, UserProfile
 from .tasks import save_movie_task
 
 # Create your views here.
@@ -78,3 +80,34 @@ class FriendsProfilesViewSet(viewsets.ModelViewSet):
             user=self.request.user).get().friends.all()]
         queryset = UserProfile.objects.filter(user__id__in=my_friends)
         return queryset
+
+
+class PostViewSet(viewsets.ModelViewSet):
+    serializer_class = serializers.PostSerializer
+    queryset = Post.objects.all()
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get_queryset(self):
+        return Post.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == 'add_comment':
+            return serializers.CommentSerializer
+        return serializers.PostSerializer
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = serializers.CommentSerializer
+    queryset = Comment.objects.all()
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get_queryset(self):
+        return super().get_queryset()
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
