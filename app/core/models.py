@@ -53,6 +53,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
 
 
+
 class Director(models.Model):
     name = models.CharField(max_length=255)
     wiki_link = models.URLField(max_length=255, default=None, null=True)
@@ -88,7 +89,7 @@ class FriendRequest(models.Model):
     receiver = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="receiver")
     is_active = models.BooleanField(blank=True, null=False, default=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateField(auto_now_add=True)
 
     def accept(self):
         receiver_friend_list = UserProfile.objects.get(user=self.receiver)
@@ -105,13 +106,6 @@ class FriendRequest(models.Model):
         self.is_active = False
         self.save()
 
-
-class Comment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    comment_date = models.DateTimeField(auto_now_add=True)
-    text = models.CharField(max_length=255)
-
-
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     post_date = models.DateTimeField(auto_now_add=True)
@@ -119,8 +113,28 @@ class Post(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.DO_NOTHING)
     text = models.TextField()
     rate = models.IntegerField(default=0, validators=[
+<<<<<<< HEAD
         MinValueValidator(0), MaxValueValidator(10)])
     comments = models.ManyToManyField(Comment, default=None, blank=True)
+=======
+                               MinValueValidator(0), MaxValueValidator(10)])
+    
+    def __str__(self):
+        return self.title
+class Comment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    comment_date = models.DateTimeField(auto_now_add=True)
+    text = models.CharField(max_length=510)
+    post= models.ForeignKey(Post, on_delete = models.CASCADE, default=None)
+
+class Reply(models.Model):
+    user = models.ForeignKey(User, on_delete= models.CASCADE)
+    comment = models.ForeignKey(Comment, on_delete = models.CASCADE)
+    text = models.CharField(max_length=510)
+    reply_date = models.DateTimeField(auto_now_add = True)
+
+
+>>>>>>> 25_10_branch
 
     def __str__(self):
         return f"{self.user.name}, {self.title}"
@@ -151,11 +165,22 @@ class UserProfile(models.Model):
 
 @ receiver(post_save, sender=User)
 def UserProfileCreator(sender, instance=None, created=False, **kwargs):
-    if created:
+    if created and instance.filmweb_nick != None:
         UserProfile.objects.create(user=instance)
 
         if instance.filmweb_nick != '':
+<<<<<<< HEAD
             # scraping_movies.adding_to_profile_func(
             #     filmweb_nick=instance.filmweb_nick, user=instance)
             append_movies.delay(
                 filmweb_nick=instance.filmweb_nick)
+=======
+            scraping_movies.adding_to_profile_func(
+                filmweb_nick=instance.filmweb_nick, user=instance)
+
+@receiver(post_save, sender= Post)
+def AddingPostToUserProfile(sender,instance = None, created = False, **kwargs):
+    if created:
+        UserProfile.objects.filter(user=instance.user).get().posts.add(instance)
+
+>>>>>>> 25_10_branch
