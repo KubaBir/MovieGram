@@ -143,6 +143,11 @@ class FriendsProfilesViewSet(viewsets.ModelViewSet):
                 OpenApiTypes.STR,
                 description='Comma seperated list of directors that you are intersted in'
             ),
+            OpenApiParameter(
+                'genres',
+                OpenApiTypes.STR,
+                description='Comma seperated list of genres that you are intersted in'
+            ),
 
 
         ]
@@ -159,6 +164,7 @@ class MainPageViewSet(viewsets.ModelViewSet):
             user=self.request.user).get().friends.all()]
         queryset = Post.objects.filter(user__id__in=my_friends)
         directors = self.request.query_params.get('directors')
+        genres = self.request.query_params.get('genres')
         if directors:
             try:
                 director_ids = []
@@ -167,6 +173,10 @@ class MainPageViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(movie__director__in=director_ids)
             except:
                 return queryset
+        if genres:
+            genre_list = ['akcja', 'przygodowy', 'romans', 'dramat',
+                          'animacja', 'komedia', 'krotkometrazowy', 'swiateczny']
+            queryset = queryset.filter(post__movie__genre__in=genre_list)
 
         return queryset
 

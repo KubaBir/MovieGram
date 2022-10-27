@@ -41,8 +41,10 @@ def adding_to_profile_func(filmweb_nick, user):
         filmy.append(movie)
 
     gatunki = {"akcja": ['sensacyjny', 'wojenny', 'kryminał', 'gangsterski', 'fantasy', 'akcja', "western", "true crime", "sztuki walki", 'szpiegowski', 'film-noir'],
-               "przygodowy": ['przygodowy', 'familijny'], "romans": ["erotyczny", "romans", "XXX"], "dramat": ["obyczajowy", 'melodramat', 'dramat obyczajowy', 'dramat historyczny',
-                                                                                                               'kostiumowy', 'psychologiczny', 'dramat', 'surrealistyczny', 'sportowy', 'religijny', 'dramat sądowy'], "animacja": ['animacja', 'anime', 'animacja dla dorosłych'], 'sci-fi': ['sci-fi'],
+               "przygodowy": ['przygodowy', 'familijny'],
+               "romans": ["erotyczny", "romans", "XXX"],
+               "dramat": ["obyczajowy", 'melodramat', 'dramat obyczajowy', 'dramat historyczny', 'kostiumowy', 'psychologiczny', 'dramat', 'surrealistyczny', 'sportowy', 'religijny', 'dramat sądowy'],
+               "animacja": ['animacja', 'anime', 'animacja dla dorosłych'], 'sci-fi': ['sci-fi'],
                'komedia': ['komedia', 'satyra', 'komedia rom.', 'komedia obycz.', 'komedia kryminalna', 'groteska filmowa', 'czarna komedia'],
                'krotkometrazowy': ['krótkometrażowy'], "horror": ['horror'], "thriller": ["thriller"], "dokumentalny": ["dokumentalny", 'przyrodniczy', 'historyczny', 'dokumentalizowany'],
                "swiateczny": ['świąteczny'], 'polityczny': ['propagandowy', 'polityczny'], 'artystyczny': ['poetycki', 'muzyczny', 'musical']}

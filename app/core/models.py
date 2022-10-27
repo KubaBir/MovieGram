@@ -138,12 +138,12 @@ class Reply(models.Model):
 class UserProfile(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="user")
-    top_movies = models.ManyToManyField(Movie, default=None)
+    top_movies = models.ManyToManyField(Movie, default=None, blank=True)
     last_watched = models.ManyToManyField(
-        Movie, default=None, related_name='last_watched')
+        Movie, default=None, related_name='last_watched', blank=True)
     friends = models.ManyToManyField(
         User, blank=True, related_name="friends")
-    posts = models.ManyToManyField(Post, default=None)
+    posts = models.ManyToManyField(Post, default=None, blank=True)
 
     def __str__(self):
         return self.user.name

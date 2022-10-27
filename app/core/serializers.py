@@ -14,6 +14,12 @@ class MovieSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class MovieMinSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Movie
+        fields = ['title']
+
+
 class AddMovieSerializer(serializers.Serializer):
     link = serializers.CharField()
 
@@ -147,9 +153,9 @@ class PostListingSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    # Return user name instead of id
-    # user = serializers.CharField()
     posts = PostListingSerializer(many=True)
+    user = serializers.CharField(source='user.name')
+    top_movies = MovieMinSerializer(many=True)
 
     class Meta:
         model = UserProfile
