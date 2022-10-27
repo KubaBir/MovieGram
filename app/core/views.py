@@ -103,7 +103,10 @@ class UserProfileViewSet(
 
 
 # tutaj zmiana na tylko get i retrieve tylko tak zeby dzialal router
-class FriendsProfilesViewSet(viewsets.ModelViewSet):
+class FriendsProfilesViewSet(
+        mixins.ListModelMixin,
+        mixins.RetrieveModelMixin,
+        viewsets.GenericViewSet):
 
     serializer_class = serializers.UserProfileSerializer
     queryset = UserProfile.objects.all()
@@ -166,25 +169,23 @@ class MainPageViewSet(viewsets.ModelViewSet):
         directors = self.request.query_params.get('directors')
         genres = self.request.query_params.get('genres')
         if directors:
-            try:
-                director_ids = []
-                for el in directors.split(','):
-                    director_ids.append(Director.objects.get(name=el).id)
-                queryset = queryset.filter(movie__director__in=director_ids)
-            except:
-                return queryset
+            for director in directors.split(','):
+                director = director.title()
+                queryset = queryset.filter(
+                    movie__director__name__contains=director)
         if genres:
-            genre_list = ['akcja', 'przygodowy', 'romans', 'dramat',
-                          'animacja', 'komedia', 'krotkometrazowy', 'swiateczny']
-            queryset = queryset.filter(post__movie__genre__in=genre_list)
-
+            for genre in genres.split(','):
+                genre = genre.lower()
+                queryset = queryset.filter(movie__genre=genre)
+# TODO Latwiejsze filtrowanie -> mapowanie np. satyra na komedia
         return queryset
 
     def create(self, request):
-        serializer = serializers.PostCreatingSerializer(data=request.data)
+        serializer = serializers.PostCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(user=self.request.user)
-        return Response(serializer.data)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class CommentsViewSet(

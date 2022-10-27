@@ -95,10 +95,11 @@ class CommentOnPostSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'user', 'comment_date']
 
 
-class PostSerializer(serializers.ModelSerializer):
+class PostCreateSerializer(serializers.ModelSerializer):
     movie = serializers.CharField()
-    user = serializers.CharField(source='user.name')
-    comments = CommentOnPostSerializer(many=True, required=False)
+    user = serializers.CharField(source='user.name', read_only=True)
+    comments = CommentOnPostSerializer(
+        many=True, required=False, read_only=True)
 
     class Meta:
         model = Post
@@ -120,6 +121,7 @@ class PostSerializer(serializers.ModelSerializer):
 
 class PostListingSerializer(serializers.ModelSerializer):
     comment_set = CommentOnPostSerializer(many=True, read_only=True)
+    movie = serializers.CharField()
 
     class Meta:
         model = Post
@@ -162,21 +164,3 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ('user', 'top_movies', 'last_watched', 'friends', 'posts')
-
-    # def create(self, validated_data):
-    #     user = User(
-    #         email=validated_data['email'],
-    #         username=validated_data['username']
-    #     )
-    #     user.set_password(validated_data['password'])
-    #     user.save()
-    #     return user
-
-    # def update(self, validated_data):
-    #     posts_data = validated_data.pop('posts')
-    #     userprofile = UserProfile.objects.update(**validated_data)
-
-    #     for post in posts_data:
-    #         Post.objects.create(userProfile=userprofile, **post)
-
-    #     return userprofile
