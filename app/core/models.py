@@ -157,6 +157,27 @@ class UserProfile(models.Model):
         if account in self.friends.all():
             self.friends.remove(account)
 
+    def get_friend_names(self):
+        friends = self.friends.all()
+        res = []
+        for friend in friends:
+            res.append(friend.name)
+        return res
+
+    def get_top_movies(self):
+        movies = self.top_movies.all()
+        res = []
+        for movie in movies:
+            res.append(movie.title)
+        return res
+
+    def get_last_watched(self):
+        movies = self.last_watched.all()
+        res = []
+        for movie in movies:
+            res.append(movie.title)
+        return res
+
 
 @ receiver(post_save, sender=User)
 def UserProfileCreator(sender, instance=None, created=False, **kwargs):

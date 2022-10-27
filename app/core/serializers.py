@@ -155,7 +155,9 @@ class PostListingSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     posts = PostListingSerializer(many=True)
     user = serializers.CharField(source='user.name')
-    top_movies = MovieMinSerializer(many=True)
+    top_movies = serializers.ListField(source='get_top_movies')
+    last_watched = serializers.ListField(source='get_last_watched')
+    friends = serializers.ListField(source='get_friend_names')
 
     class Meta:
         model = UserProfile
