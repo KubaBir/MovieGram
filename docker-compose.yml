@@ -2,6 +2,21 @@ version: "3.9"
 
 
 services:
+  redis:
+    image: redis:7-alpine
+
+  celery_worker:
+    build:
+      context: .
+    command: celery -A app worker -l INFO
+    volumes:
+      - ./app:/app
+    env_file:
+      - ./.env/.dev-sample
+    depends_on:
+      - redis
+      - app
+      
   app:
     build:
       context: .
@@ -18,6 +33,7 @@ services:
       - ./.env/.dev-sample
     depends_on:
       - db
+      - redis
 
   db:
     image: postgres:13-alpine
@@ -27,6 +43,8 @@ services:
       - POSTGRES_DB=hello_django_dev
       - POSTGRES_USER=hello_django
       - POSTGRES_PASSWORD=hello_django
+
+
 
 
 volumes:

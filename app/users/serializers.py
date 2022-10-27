@@ -15,18 +15,15 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = ['email', 'password', 'name', 'filmweb_nick', 'id']
+        read_only_fields = ['id']
         extra_kwargs = {
             'password': {'write_only': True, 'min_length': 5},
-            'filmweb_nick': {'allow_null': True, 'required': False}
+            'filmweb_nick': {'allow_null': True, 'required': False},
+            'id': {'allow_null': True, 'required': False}
         }
 
     def create(self, validated_data):
         """Create and return a user with encrypted password"""
-        try:
-            scraping_movies_func(self.validated_data['filmweb_nick'])
-        except:
-            pass
-
         return get_user_model().objects.create_user(**validated_data)
 
     def update(self, instance, validated_data):

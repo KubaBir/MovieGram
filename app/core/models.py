@@ -8,6 +8,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from users.tasks import append_movies
 from utils import scraping_movies
 
 sys.path.append('..')
@@ -59,11 +60,12 @@ class Director(models.Model):
     def save(self, *args, **kwargs):
         # funkcja odpowiedzialna za generowanie linku do wikipedii danego rezysera
         try:
-            self.wiki_link = 'https://pl.wikipedia.org/wiki/{}_{}'.format(
-                self.name.split()[0], self.name.split()[1])
+            link_name = self.name.replace(' ', '_')
+            self.wiki_link = f'https://pl.wikipedia.org/wiki/{link_name}'
+
             super().save(*args, **kwargs)
         except:
-            pass
+            print('Could not find director wiki page.')
 
     def __str__(self):
         return self.name
@@ -117,8 +119,11 @@ class Post(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.DO_NOTHING)
     text = models.TextField()
     rate = models.IntegerField(default=0, validators=[
-                               MinValueValidator(0), MaxValueValidator(10)])
+        MinValueValidator(0), MaxValueValidator(10)])
     comments = models.ManyToManyField(Comment, default=None, blank=True)
+
+    def __str__(self):
+        return f"{self.user.name}, {self.title}"
 
 
 class UserProfile(models.Model):
@@ -127,7 +132,8 @@ class UserProfile(models.Model):
     top_movies = models.ManyToManyField(Movie, default=None)
     last_watched = models.ManyToManyField(
         Movie, default=None, related_name='last_watched')
-    friends = models.ManyToManyField(User, blank=True, related_name="friends")
+    friends = models.ManyToManyField(
+        User, blank=True, related_name="friends")
     posts = models.ManyToManyField(Post, default=None)
 
     def __str__(self):
@@ -143,11 +149,13 @@ class UserProfile(models.Model):
             self.friends.remove(account)
 
 
-@receiver(post_save, sender=User)
+@ receiver(post_save, sender=User)
 def UserProfileCreator(sender, instance=None, created=False, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
 
         if instance.filmweb_nick != '':
-            scraping_movies.adding_to_profile_func(
-                filmweb_nick=instance.filmweb_nick, user=instance)
+            # scraping_movies.adding_to_profile_func(
+            #     filmweb_nick=instance.filmweb_nick, user=instance)
+            append_movies.delay(
+                filmweb_nick=instance.filmweb_nick)
