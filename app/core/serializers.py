@@ -1,7 +1,7 @@
 
 from rest_framework import serializers
 
-from .models import User, Comment, Director, FriendRequest, Movie, Post, UserProfile
+from .models import User, Comment, Director, FriendRequest, Movie, Post, UserProfile, Reply
 
 
 class MovieSerializer(serializers.ModelSerializer):
@@ -38,12 +38,35 @@ class AcceptingFriendRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FriendRequest
         fields = ['is_active']
+class ReplyOnCommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reply
+        fields = ['id','user','reply_date','text','comment']
+        extra_kwargs = {
+            "user": {"read_only": True},
+            "reply_date" : {"read_only": True},
+            "comment" : {"write_only": True}
+        }
+    def validate(self,data):
+        data['user'] = self.context['request'].user
+        return data
+class ReplySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reply
+        fields = ['id','user','reply_date','text','comment']
+        extra_kwargs = {
+            "user": {"read_only": True},
+            "reply_date" : {"read_only": True},
+            "comment": {"read_only": True}
+        }
 
 
-class CommentSerializer(serializers.ModelSerializer):
+
+class CommentOnPostSerializer(serializers.ModelSerializer):
+    reply_set = ReplyOnCommentSerializer(many = True, read_only = True)
     class Meta:
         model = Comment
-        fields = ['user', 'comment_date', 'text','post']
+        fields = ['id','user', 'comment_date', 'text','post','reply_set']
         extra_kwargs = {
             "user": {"read_only": True},
             "comment_date": {"read_only": True},
@@ -53,6 +76,19 @@ class CommentSerializer(serializers.ModelSerializer):
         data['user'] = self.context['request'].user
         return data
 
+class CommentSerializer(serializers.ModelSerializer):
+    reply_set = ReplyOnCommentSerializer(many = True,read_only = True)
+    class Meta:
+        model = Comment
+        fields = ['id','user', 'comment_date', 'text','post','reply_set']
+        extra_kwargs = {
+            "user": {"read_only": True},
+            "comment_date": {"read_only": True},
+            "post": {"read_only": True}
+        }
+    def validate(self,data):
+        data['user'] = self.context['request'].user
+        return data
 
 
 class PostCreatingSerializer(serializers.ModelSerializer):
@@ -67,7 +103,7 @@ class PostListingSerializer(serializers.ModelSerializer):
     comment_set = CommentSerializer(many=True, read_only = True)
     class Meta:
         model = Post
-        fields = ['user', 'post_date', 'title', 'movie', 'text','comment_set']
+        fields = ['id','user', 'post_date', 'title', 'movie', 'text','comment_set']
         extra_kwargs = {
             "user": {"read_only": True},
             'post_date': {"read_only": True}

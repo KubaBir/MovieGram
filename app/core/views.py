@@ -1,5 +1,7 @@
 from multiprocessing import AuthenticationError
 from tokenize import Token
+
+from django.shortcuts import get_object_or_404
 from rest_framework import mixins, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
@@ -8,7 +10,7 @@ from rest_framework.response import Response
 from drf_spectacular.utils import (OpenApiParameter, OpenApiTypes,
                                    extend_schema, extend_schema_view)
 from . import serializers
-from .models import Director, Movie, Post, UserProfile, Comment
+from .models import Director, Movie, Post, UserProfile, Comment, Reply
 
 # Create your views here.
 
@@ -135,11 +137,50 @@ class MainPageViewSet(viewsets.ModelViewSet):
 
     
 
-class CommentsViewSet(viewsets.ModelViewSet):
+class CommentsViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet):
     serializer_class = serializers.CommentSerializer
     queryset = Comment.objects.all()
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
+    def get_serializer_class(self):
+
+        if self.action == "retrieve":
+            return serializers.CommentSerializer
+        if self.action == "create":
+            return serializers.CommentOnPostSerializer
+    # def list(self,request):
+    #     queryset = Comment.objects.filter(user = self.request.user).all()
+    #     return queryset
+    
+    # def create(self,request):
+    #     serializer = self.serializer_class(self.queryset)
+    #     if serializer.is_valid():
+    #         return Response(serializer.data)
+    #     return Response({"Status": "Something went wrong"})
+    # def retrieve(self,request):
+    #     obj = get_object_or_404
+    #     serializer = self.serializer_class(obj)
+    #     return Response(serializer.data)
+
+class ReplyViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet):
+    serializer_class = serializers.ReplySerializer
+    queryset = Reply.objects.all()
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get_serializer_class(self):
+
+        if self.action == "retrieve":
+            return serializers.ReplySerializer
+        if self.action == "create":
+            return serializers.ReplyOnCommentSerializer
 
 
             
