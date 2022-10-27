@@ -187,7 +187,7 @@ class CommentsViewSet(
     mixins.CreateModelMixin,
     viewsets.GenericViewSet):
 
-    serializer_class = serializers.CommentSerializer
+    serializer_class = serializers.CommentOnPostSerializer
     queryset = Comment.objects.all()
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
@@ -197,12 +197,6 @@ class CommentsViewSet(
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-    def get_serializer_class(self):
-
-        if self.action == "retrieve":
-            return serializers.CommentSerializer
-        if self.action == "create":
-            return serializers.CommentOnPostSerializer
     # def list(self,request):
     #     queryset = Comment.objects.filter(user = self.request.user).all()
     #     return queryset
@@ -221,7 +215,7 @@ class ReplyViewSet(
     mixins.RetrieveModelMixin,
     mixins.CreateModelMixin,
     viewsets.GenericViewSet):
-    serializer_class = serializers.ReplySerializer
+    serializer_class = serializers.ReplyOnCommentSerializer
     queryset = Reply.objects.all()
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
@@ -229,12 +223,6 @@ class ReplyViewSet(
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    def get_serializer_class(self):
-
-        if self.action == "retrieve":
-            return serializers.ReplySerializer
-        if self.action == "create":
-            return serializers.ReplyOnCommentSerializer
 
 
             

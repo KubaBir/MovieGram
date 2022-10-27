@@ -9,7 +9,6 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from users.tasks import append_movies
-from utils import scraping_movies
 
 sys.path.append('..')
 # Create your models here.
@@ -112,12 +111,7 @@ class Post(models.Model):
     title = models.CharField(max_length=255)
     movie = models.ForeignKey(Movie, on_delete=models.DO_NOTHING)
     text = models.TextField()
-    rate = models.IntegerField(default=0, validators=[
-<<<<<<< HEAD
-        MinValueValidator(0), MaxValueValidator(10)])
-    comments = models.ManyToManyField(Comment, default=None, blank=True)
-=======
-                               MinValueValidator(0), MaxValueValidator(10)])
+    rate = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(10)])
     
     def __str__(self):
         return self.title
@@ -134,7 +128,6 @@ class Reply(models.Model):
     reply_date = models.DateTimeField(auto_now_add = True)
 
 
->>>>>>> 25_10_branch
 
     def __str__(self):
         return f"{self.user.name}, {self.title}"
@@ -168,19 +161,8 @@ def UserProfileCreator(sender, instance=None, created=False, **kwargs):
     if created and instance.filmweb_nick != None:
         UserProfile.objects.create(user=instance)
 
-        if instance.filmweb_nick != '':
-<<<<<<< HEAD
+        if instance.filmweb_nick != '' and not instance.filmweb_nick:
             # scraping_movies.adding_to_profile_func(
             #     filmweb_nick=instance.filmweb_nick, user=instance)
             append_movies.delay(
                 filmweb_nick=instance.filmweb_nick)
-=======
-            scraping_movies.adding_to_profile_func(
-                filmweb_nick=instance.filmweb_nick, user=instance)
-
-@receiver(post_save, sender= Post)
-def AddingPostToUserProfile(sender,instance = None, created = False, **kwargs):
-    if created:
-        UserProfile.objects.filter(user=instance.user).get().posts.add(instance)
-
->>>>>>> 25_10_branch

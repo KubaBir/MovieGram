@@ -2,7 +2,8 @@
 import requests
 from rest_framework import serializers, status
 
-from .models import User, Comment, Director, FriendRequest, Movie, Post, UserProfile, Reply
+from .models import (Comment, Director, FriendRequest, Movie, Post, Reply,
+                     User, UserProfile)
 
 
 class MovieSerializer(serializers.ModelSerializer):
@@ -77,9 +78,7 @@ class ReplyOnCommentSerializer(serializers.ModelSerializer):
         model = Reply
         fields = ['id','user','reply_date','text','comment']
         read_only_fields = ['id','user','reply_date']
-    def validate(self,data):
-        data['user'] = self.context['request'].user
-        return data
+    
 
 
 class CommentOnPostSerializer(serializers.ModelSerializer):
@@ -88,10 +87,7 @@ class CommentOnPostSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ['id','user', 'comment_date', 'text','post','reply_set']
         read_only_fields = ['id', 'user', 'comment_date']
-    def validate(self,data):
-        data['user'] = self.context['request'].user
-        return data
-
+    
 
 
 
