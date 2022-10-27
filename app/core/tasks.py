@@ -7,8 +7,8 @@ from .models import Director, Movie
 @celery_app.task
 def save_movie_task(link):
     movie = get_movie(link)
-    if Director.objects.filter(name=movie['director']).exists():
-        director = Director.objects.filter(name=movie['director'])
+    if Director.objects.get(name=movie['director']).exists():
+        director = Director.objects.get(name=movie['director'])
     else:
         director = Director.objects.create(name=movie['director'])
     movie.pop('director')

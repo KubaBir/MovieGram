@@ -10,6 +10,8 @@ sys.path.append('..')
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for the user object"""
+    filmweb_nick = serializers.CharField(
+        allow_null=True, required=False)
 
     class Meta:
         model = get_user_model()

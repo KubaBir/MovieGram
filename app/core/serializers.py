@@ -12,7 +12,6 @@ class MovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
         fields = '__all__'
-        # read_only_fields = ['director', 'genre', 'year', 'description']
 
 
 class AddMovieSerializer(serializers.Serializer):
@@ -23,8 +22,10 @@ class AddMovieSerializer(serializers.Serializer):
         fields = ['link']
 
     def validate_link(self, attrs):
+        if not attrs.startswith('https://www.filmweb.pl/film/'):
+            raise serializers.ValidationError('Provide filmweb link')
         response = requests.get(attrs)
-        if response.status_code == status.HTTP_400_BAD_REQUEST or not attrs.startswith('https://www.filmweb.pl/film/'):
+        if response.status_code != status.HTTP_200_OK:
             raise serializers.ValidationError('Provide filmweb link')
         return attrs
 
@@ -56,7 +57,6 @@ class AcceptingFriendRequestSerializer(serializers.ModelSerializer):
         fields = ['is_active']
 
 
-
 # class CommentSerializer(serializers.ModelSerializer):
 #     post_id = serializers.IntegerField(write_only=True)
 #     user = serializers.CharField(source='user.name')
@@ -76,19 +76,17 @@ class AcceptingFriendRequestSerializer(serializers.ModelSerializer):
 class ReplyOnCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reply
-        fields = ['id','user','reply_date','text','comment']
-        read_only_fields = ['id','user','reply_date']
-    
+        fields = ['id', 'user', 'reply_date', 'text', 'comment']
+        read_only_fields = ['id', 'user', 'reply_date']
 
 
 class CommentOnPostSerializer(serializers.ModelSerializer):
-    reply_set = ReplyOnCommentSerializer(many = True, read_only = True)
+    reply_set = ReplyOnCommentSerializer(many=True, read_only=True)
+
     class Meta:
         model = Comment
-        fields = ['id','user', 'comment_date', 'text','post','reply_set']
+        fields = ['id', 'user', 'comment_date', 'text', 'post', 'reply_set']
         read_only_fields = ['id', 'user', 'comment_date']
-    
-
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -112,16 +110,19 @@ class PostSerializer(serializers.ModelSerializer):
         if not Movie.objects.filter(title=field).exists():
             raise serializers.ValidationError('Could not find provided movie.')
         return field
+
+
 class PostListingSerializer(serializers.ModelSerializer):
-    comment_set = CommentOnPostSerializer(many=True, read_only = True)
+    comment_set = CommentOnPostSerializer(many=True, read_only=True)
+
     class Meta:
         model = Post
-        fields = ['id','user', 'post_date', 'title', 'movie', 'text','comment_set']
+        fields = ['id', 'user', 'post_date',
+                  'title', 'movie', 'text', 'comment_set']
         extra_kwargs = {
             "user": {"read_only": True},
             'post_date': {"read_only": True}
         }
-
 
 
 # class CommentingPostSerializer(serializers.ModelSerializer):
@@ -148,13 +149,12 @@ class PostListingSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     # Return user name instead of id
     # user = serializers.CharField()
-    posts = PostListingSerializer(many = True)
+    posts = PostListingSerializer(many=True)
 
     class Meta:
         model = UserProfile
         fields = ('user', 'top_movies', 'last_watched', 'friends', 'posts')
-        
-    
+
     # def create(self, validated_data):
     #     user = User(
     #         email=validated_data['email'],
@@ -172,9 +172,3 @@ class UserProfileSerializer(serializers.ModelSerializer):
     #         Post.objects.create(userProfile=userprofile, **post)
 
     #     return userprofile
-
-
-
-
-
-

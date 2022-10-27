@@ -45,11 +45,16 @@ class MoviesViewSet(mixins.ListModelMixin,
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class DirectorViewSet(viewsets.ModelViewSet):
+class DirectorViewSet(
+        mixins.ListModelMixin,
+        mixins.RetrieveModelMixin,
+        mixins.DestroyModelMixin,
+        viewsets.GenericViewSet):
     serializer_class = serializers.DirectorSerializer
     queryset = Director.objects.all()
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
+
 
 @extend_schema_view(
     my_profile=extend_schema(
@@ -59,7 +64,7 @@ class DirectorViewSet(viewsets.ModelViewSet):
                 OpenApiTypes.STR,
                 description='Comma seperated list of friend_ids to unfriend'
             ),
-            
+
         ]
     )
 )
@@ -67,7 +72,6 @@ class UserProfileViewSet(
         mixins.ListModelMixin,
         mixins.RetrieveModelMixin,
         viewsets.GenericViewSet):
-    # viewsets.ModelViewSet):
     serializer_class = serializers.UserProfileSerializer
     queryset = UserProfile.objects.all()
     permission_classes = [IsAdminUser]
@@ -84,24 +88,22 @@ class UserProfileViewSet(
     @ action(methods=["GET", "PATCH"], detail=False, permission_classes=[IsAuthenticated])
     def my_profile(self, request):
         obj = UserProfile.objects.filter(user=self.request.user).get()
-        unfriend= self.request.query_params.get('unfriend')
+        unfriend = self.request.query_params.get('unfriend', None)
         if unfriend:
             unfriend_ids = self._params_to_ints(unfriend)
-            friends=  obj.friends.filter(id__in=unfriend_ids)
+            friends = obj.friends.filter(id__in=unfriend_ids)
             for friend in friends:
-                obj.friends.remove(friend) # a tu nie 
-                UserProfile.objects.filter(user=friend).get().friends.remove(self.request.user.id) #czemu tu musi byc id
-                
-
-
-
+                obj.friends.remove(friend)  # a tu nie
+                UserProfile.objects.filter(user=friend).get().friends.remove(
+                    self.request.user.id)  # czemu tu musi byc id
 
         queryset = UserProfile.objects.filter(user=self.request.user).get()
         serializer = self.get_serializer(queryset)
         return Response(serializer.data)
 
 
-class FriendsProfilesViewSet(viewsets.ModelViewSet): #tutaj zmiana na tylko get i retrieve tylko tak zeby dzialal router
+# tutaj zmiana na tylko get i retrieve tylko tak zeby dzialal router
+class FriendsProfilesViewSet(viewsets.ModelViewSet):
 
     serializer_class = serializers.UserProfileSerializer
     queryset = UserProfile.objects.all()
@@ -109,7 +111,6 @@ class FriendsProfilesViewSet(viewsets.ModelViewSet): #tutaj zmiana na tylko get 
     authentication_classes = [TokenAuthentication]
 
     def get_queryset(self):
-        
         my_friends = [el.id for el in UserProfile.objects.filter(
             user=self.request.user).get().friends.all()]
         queryset = UserProfile.objects.filter(user__id__in=my_friends)
@@ -134,8 +135,6 @@ class FriendsProfilesViewSet(viewsets.ModelViewSet): #tutaj zmiana na tylko get 
 #         return serializers.PostSerializer
 
 
-
-
 @extend_schema_view(
     list=extend_schema(
         parameters=[
@@ -144,8 +143,8 @@ class FriendsProfilesViewSet(viewsets.ModelViewSet): #tutaj zmiana na tylko get 
                 OpenApiTypes.STR,
                 description='Comma seperated list of directors that you are intersted in'
             ),
-            
-            
+
+
         ]
     )
 )
@@ -154,8 +153,6 @@ class MainPageViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
-    
-
 
     def get_queryset(self):
         my_friends = [el.id for el in UserProfile.objects.filter(
@@ -164,43 +161,39 @@ class MainPageViewSet(viewsets.ModelViewSet):
         directors = self.request.query_params.get('directors')
         if directors:
             try:
-                director_ids=[]
+                director_ids = []
                 for el in directors.split(','):
                     director_ids.append(Director.objects.get(name=el).id)
-                queryset = queryset.filter(movie__director__in = director_ids)
+                queryset = queryset.filter(movie__director__in=director_ids)
             except:
                 return queryset
 
-
         return queryset
-    def create(self, request):
-        serializer = serializers.PostCreatingSerializer(data = request.data)
-        serializer.is_valid(raise_exception = True)
-        serializer.save(user=self.request.user)
-        return Response (serializer.data)
 
-    
+    def create(self, request):
+        serializer = serializers.PostCreatingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=self.request.user)
+        return Response(serializer.data)
+
 
 class CommentsViewSet(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.CreateModelMixin,
-    viewsets.GenericViewSet):
+        mixins.ListModelMixin,
+        mixins.RetrieveModelMixin,
+        mixins.CreateModelMixin,
+        viewsets.GenericViewSet):
 
     serializer_class = serializers.CommentOnPostSerializer
     queryset = Comment.objects.all()
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
-
-
-
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
     # def list(self,request):
     #     queryset = Comment.objects.filter(user = self.request.user).all()
     #     return queryset
-    
+
     # def create(self,request):
     #     serializer = self.serializer_class(self.queryset)
     #     if serializer.is_valid():
@@ -211,10 +204,11 @@ class CommentsViewSet(
     #     serializer = self.serializer_class(obj)
     #     return Response(serializer.data)
 
+
 class ReplyViewSet(
-    mixins.RetrieveModelMixin,
-    mixins.CreateModelMixin,
-    viewsets.GenericViewSet):
+        mixins.RetrieveModelMixin,
+        mixins.CreateModelMixin,
+        viewsets.GenericViewSet):
     serializer_class = serializers.ReplyOnCommentSerializer
     queryset = Reply.objects.all()
     permission_classes = [IsAuthenticated]
@@ -222,12 +216,3 @@ class ReplyViewSet(
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
-
-
-            
-
-
-
-
-
