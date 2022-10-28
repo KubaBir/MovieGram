@@ -10,32 +10,29 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action, api_view
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import mixins
 
 sys.path.append("..")
 # Create your views here.
 
 
 @extend_schema_view(
-    my_invs=extend_schema(
+    responding_to_invs=extend_schema(
         parameters=[
             OpenApiParameter(
                 'accept',
-                OpenApiTypes.STR,
-                description='Comma seperated list of ids to accept'
+                OpenApiTypes.BOOL,
+                description='Do you want to accept this invite? 1-yes, 0-no'
             ),
-            OpenApiParameter(
-                'decline',
-                OpenApiTypes.STR,
-                description="Comma seperated list of ids to decline"
-            )
+        
         ]
     )
 )
-class FriendRequestViewSet(viewsets.GenericViewSet):
+class FriendRequestViewSet( mixins.ListModelMixin, viewsets.GenericViewSet):
     """View for admin """
     serializer_class = serializers.FriendRequestSerializerList
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
     def _params_to_ints(self, qs):
         return [int(str_id) for str_id in qs.split(',')]
@@ -46,6 +43,7 @@ class FriendRequestViewSet(viewsets.GenericViewSet):
         else:
             queryset = models.FriendRequest.objects.filter(
                 receiver=self.request.user).all()
+        return queryset
     """Actions taking care of users interactions """
 
     def perform_create(self, serializer):
@@ -68,23 +66,18 @@ class FriendRequestViewSet(viewsets.GenericViewSet):
         self.perform_create(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(methods=["GET"], detail=False, permission_classes=[IsAuthenticated])
-    def my_invs(self, request):
-        queryset = models.FriendRequest.objects.filter(
-            receiver=self.request.user).all()
+    
+    @action(methods = ["GET"], detail = True, permission_classes = [IsAuthenticated])
+    def responding_to_invs(self, request,pk= None):
+        obj = self.get_object()
         accept = self.request.query_params.get('accept')
-        decline = self.request.query_params.get('decline')
+        print(accept)
+        print('chuj')
         if accept:
-            accept_ids = self._params_to_ints(accept)
-            qs = queryset.filter(id__in=accept_ids)
-            for obj in qs:
-                obj.accept()
-                obj.delete()
-        if decline:
-            decline_ids = self._params_to_ints(decline)
-            qs = queryset.filter(id__in=decline_ids)
-            for obj in qs:
-                obj.decline()
-                obj.delete()
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            obj.accept()
+            obj.delete()
+        else:
+            obj.decline()
+            obj.delete()
+        serializer = self.get_serializer(obj)
+        return Response(serializer.data, status = status.HTTP_200_OK)
