@@ -123,7 +123,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ['user', 'top_movies', 'last_watched', 'friends', 'posts']
+        fields = ['user','filmweb_nick','top_movies', 'last_watched', 'friends', 'posts']
         read_only_fields = ['user']
 
     def update(self, validated_data):

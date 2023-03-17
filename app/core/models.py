@@ -129,6 +129,7 @@ class Post(models.Model):
 class UserProfile(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="user")
+    filmweb_nick = models.CharField(max_length=255)
     top_movies = models.ManyToManyField(Movie, default=None)
     last_watched = models.ManyToManyField(
         Movie, default=None, related_name='last_watched')
@@ -152,7 +153,7 @@ class UserProfile(models.Model):
 @ receiver(post_save, sender=User)
 def UserProfileCreator(sender, instance=None, created=False, **kwargs):
     if created:
-        UserProfile.objects.create(user=instance)
+        UserProfile.objects.create(user=instance, filmweb_nick = instance.filmweb_nick)
 
         if instance.filmweb_nick != '':
             # scraping_movies.adding_to_profile_func(

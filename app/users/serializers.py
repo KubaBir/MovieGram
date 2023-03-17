@@ -41,8 +41,8 @@ class UserSerializer(serializers.ModelSerializer):
 class AuthTokenSerializer(serializers.Serializer):
     """Serializer for the user authh token."""
     email = serializers.EmailField()
-    password = serializers.CharField(style={"input_type": 'password'},
-                                     trim_whitespace=False,)
+    password = serializers.CharField(style={"input_type": 'password'}, # input_type: 'password' makes the characters hiddens
+                                     trim_whitespace=False,) #trim_whitespace = False in case someone has space on purpose at the end of their password
 
     def validate(self, attrs):
         """Validate and auth the user."""
