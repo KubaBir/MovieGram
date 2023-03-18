@@ -1,4 +1,5 @@
 from core.models import Comment, Director, Movie, Post, Reply
+from core.serializers import MovieSerializer
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -10,7 +11,7 @@ MAINPAGE_URL = reverse('core:post-list')
 # comments
 # directors -> DONE ###
 # main_page -> create_post
-# movies -> create_movie
+# movies -> create_movie, list_movies
 
 
 def create_user(email='test@example.com', password='test123'):
@@ -73,8 +74,24 @@ class PrivateAPITests(TestCase):
 
         res = self.client.get(reverse('core:movie-list'))
 
+        movies = Movie.objects.all().order_by('id')
+
+        serializer = MovieSerializer(movies, many=True)
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 2)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_movie_detail(self):
+        create_movie(title='movie1')
+        movie = create_movie(title='movie2')
+
+        res = self.client.get(reverse('core:movie-detail', args=[movie.id]))
+
+        serializer = MovieSerializer(movie)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
 
     def test_create_post(self):
         movie = create_movie()
