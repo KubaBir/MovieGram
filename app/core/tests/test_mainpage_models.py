@@ -1,4 +1,5 @@
-from core.models import Comment, Director, Movie, Post, Reply
+from core.models import (Comment, Director, FriendRequest, Movie, Post, Reply,
+                         UserProfile)
 from core.serializers import MovieSerializer
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -11,7 +12,8 @@ MAINPAGE_URL = reverse('core:post-list')
 # comments
 # directors -> DONE ###
 # main_page -> create_post
-# movies -> create_movie, list_movies
+# movies -> create_movie, list_movies -> DONE ###
+# friends -> DONE ###
 
 
 def create_user(email='test@example.com', password='test123'):
@@ -116,6 +118,51 @@ class PrivateAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 2)
+
+    def test_friend_invite(self):
+        friend = create_user(email='friend@example.com')
+        friend_client = APIClient()
+        friend_client.force_authenticate(friend)
+
+        url = reverse('friend:friends_requests-sending-inv')
+        res = friend_client.post(url, {
+            "receiver": self.user.id
+        })
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.data['receiver'], self.user.id)
+        invites = FriendRequest.objects.all()
+        self.assertEqual(len(invites), 1)
+
+        inv = FriendRequest.objects.get(sender=friend, receiver=self.user)
+        url = reverse(
+            'friend:friends_requests-responding-to-invs', args=[inv.id])
+        res = self.client.get(
+            url, QUERY_STRING='accept=true')
+
+        up = UserProfile.objects.get(user=self.user)
+        self.assertIn(friend, up.friends.all())
+
+    def test_view_friends_posts(self):
+        movie = create_movie()
+
+        friend = create_user(email='friend@example.com')
+        stranger = create_user(email='stranger@example.com')
+
+        friend_profile = UserProfile.objects.get(user=friend)
+        my_profile = UserProfile.objects.get(user=self.user)
+        friend_profile.friends.add(self.user)
+        my_profile.friends.add(friend)
+
+        Post.objects.create(user=friend, title='friend post',
+                            movie=movie, text='test_text')
+
+        Post.objects.create(user=stranger, title='stranger post',
+                            movie=movie, text='test_text')
+
+        url = reverse('core:post-list')
+        res = self.client.get(url)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     # friend = create_user(email='friend.example.com')
     # stranger = create_user(email='stranger.example.com')

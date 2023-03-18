@@ -149,7 +149,6 @@ class UserProfile(models.Model):
         return self.user.name
 
     def add_friend(self, account):
-
         if not account in self.friends.all():
             self.friends.add(account)
 
