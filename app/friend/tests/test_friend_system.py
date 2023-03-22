@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from users.tests.test_user import create_user, CREATE_USER_URL
 from core.tests.test_userprofile import MY_PROFILE
-from core.models import UserProfile
+from core.models import UserProfile, FriendRequest
 from django.utils.http import urlencode
 from rest_framework.response import Response
 
@@ -44,8 +44,8 @@ class FriendSystemTests(TestCase):
     def test_accepting_a_friend_request(self):
         """Test accepting a friend request on the responding_to_invs endpoint"""
         payload = { 'receiver': self.second_user.id}
-        self.client.post(SEND_INV_URL,payload)
-        url = responding_to_invs_url(1)
+        res = self.client.post(SEND_INV_URL,payload)
+        url = responding_to_invs_url(res.data['id'])
         url1 = '{}?{}'.format(url, urlencode({'accept':'true'}))
 
         res2 = self.client1.get(url1)
@@ -59,8 +59,8 @@ class FriendSystemTests(TestCase):
     def test_unfriending_a_friend(self):
         """Testing unfriending a friend from a UserProfile """
         payload = { 'receiver': self.second_user.id}
-        self.client.post(SEND_INV_URL,payload)
-        url = responding_to_invs_url(1)
+        res = self.client.post(SEND_INV_URL,payload)
+        url = responding_to_invs_url(res.data['id'])
         url1 = '{}?{}'.format(url, urlencode({'accept':'true'}))
         res2 = self.client1.get(url1)
         unfriend_url = '{}?{}'.format(MY_PROFILE, urlencode({'unfriend':'1'}))
@@ -74,8 +74,8 @@ class FriendSystemTests(TestCase):
     def test_declining_a_friend_request(self):
         """Test declining a friend request from responding_to_inv endpoint"""
         payload = { 'receiver': self.second_user.id}
-        self.client.post(SEND_INV_URL,payload)
-        url = responding_to_invs_url(2)
+        res = self.client.post(SEND_INV_URL,payload)
+        url = responding_to_invs_url(res.data['id'])
         url1 = '{}?{}'.format(url, urlencode({'accept':'false'}))
 
         res2 = self.client1.get(url1)
@@ -101,7 +101,8 @@ class FriendSystemTests(TestCase):
         """Test sending friend request to a friend already in your list returning a error message"""
         payload = { 'receiver': self.second_user.id}
         res1 =self.client.post(SEND_INV_URL,payload)
-        url = responding_to_invs_url(3)
+    
+        url = responding_to_invs_url(res1.data['id'])
         url1 = '{}?{}'.format(url, urlencode({'accept':'true'}))
         res2 = self.client1.get(url1)
         res3 = self.client.post(SEND_INV_URL,payload)
