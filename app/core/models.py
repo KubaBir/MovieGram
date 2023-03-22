@@ -98,7 +98,6 @@ class FriendRequest(models.Model):
                 sender_friend_list.add_friend(self.receiver)
                 self.is_active = False
                 self.save()
-   
 
     def decline(self):
         """Receiver cancels"""
@@ -136,14 +135,22 @@ class Reply(models.Model):
         return f"{self.user.name}, {self.title}"
 
 
+class MovieWatch(models.Model):
+    movie = models.ForeignKey(
+        Movie, on_delete=models.CASCADE, default=None, blank=True)
+    date = models.DateTimeField(auto_now=True)
+
+
 class UserProfile(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="user")
     top_movies = models.ManyToManyField(Movie, default=None, blank=True)
-    filmweb_nick = models.CharField(max_length=255, default = None, null=True)
+    filmweb_nick = models.CharField(max_length=255, default=None, null=True)
     top_movies = models.ManyToManyField(Movie, default=None)
+    # last_watched = models.ManyToManyField(
+    #     Movie, default=None, related_name='last_watched', blank=True)
     last_watched = models.ManyToManyField(
-        Movie, default=None, related_name='last_watched', blank=True)
+        MovieWatch, default=None, blank=True, null=True)
     friends = models.ManyToManyField(
         User, blank=True, related_name="friends")
     posts = models.ManyToManyField(Post, default=None, blank=True)
@@ -174,17 +181,20 @@ class UserProfile(models.Model):
         return res
 
     def get_last_watched(self):
-        movies = self.last_watched.all()
+        if not self.last_watched:
+            return []
+        movies = self.last_watched.order_by("-id")[0:10]
         res = []
         for movie in movies:
-            res.append(movie.title)
+            res.append(movie.movie.title)
         return res
 
 
 @ receiver(post_save, sender=User)
 def UserProfileCreator(sender, instance=None, created=False, **kwargs):
     if created:
-        UserProfile.objects.create(user=instance, filmweb_nick = instance.filmweb_nick)
+        UserProfile.objects.create(
+            user=instance, filmweb_nick=instance.filmweb_nick)
 
         if instance.filmweb_nick != '' and instance.filmweb_nick:
             append_movies.delay(filmweb_nick=instance.filmweb_nick)

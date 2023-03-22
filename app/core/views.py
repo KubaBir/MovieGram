@@ -38,7 +38,7 @@ class MoviesViewSet(mixins.ListModelMixin,
         serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
-            save_movie_task.delay(request.data['link'])
+            save_movie_task.delay(request.data['link'], self.request.user.id)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -74,6 +74,7 @@ class UserProfileViewSet(
     queryset = UserProfile.objects.all()
     permission_classes = [IsAdminUser]
     authentication_classes = [TokenAuthentication]
+
     def _params_to_ints(self, qs):
         return [int(str_id) for str_id in qs.split(',')]
 
@@ -85,14 +86,13 @@ class UserProfileViewSet(
             unfriend_ids = self._params_to_ints(unfriend)
             friends = obj.friends.filter(id__in=unfriend_ids)
             for friend in friends:
-                obj.friends.remove(friend)  
+                obj.friends.remove(friend)
                 UserProfile.objects.filter(user=friend).get().friends.remove(
-                    self.request.user.id)  
+                    self.request.user.id)
 
         queryset = UserProfile.objects.filter(user=self.request.user).get()
         serializer = self.get_serializer(queryset)
         return Response(serializer.data)
-
 
 
 class FriendsProfilesViewSet(
@@ -110,8 +110,6 @@ class FriendsProfilesViewSet(
             user=self.request.user).get().friends.all()]
         queryset = UserProfile.objects.filter(user__id__in=my_friends)
         return queryset
-
-
 
 
 @extend_schema_view(

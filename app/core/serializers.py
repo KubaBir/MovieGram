@@ -6,7 +6,6 @@ from .models import (Comment, Director, FriendRequest, Movie, Post, Reply,
                      User, UserProfile)
 
 
-
 class MovieSerializer(serializers.ModelSerializer):
     director = serializers.CharField()
 
@@ -17,7 +16,6 @@ class MovieSerializer(serializers.ModelSerializer):
 
 class MovieAddSerializer(serializers.Serializer):
     link = serializers.CharField()
-    
 
     class Meta:
         model = Movie
@@ -49,7 +47,7 @@ class FriendRequestSerializerList(serializers.ModelSerializer):
 class FriendRequestSerializerSend(serializers.ModelSerializer):
     class Meta:
         model = FriendRequest
-        fields = ['id','sender','receiver']
+        fields = ['id', 'sender', 'receiver']
         read_only_fields = ['sender']
 
 
@@ -116,6 +114,5 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ['user','filmweb_nick','top_movies', 'last_watched', 'friends', 'posts']
-        
-
+        fields = ['user', 'filmweb_nick', 'top_movies',
+                  'last_watched', 'friends', 'posts']
