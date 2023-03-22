@@ -30,16 +30,14 @@ class MoviesViewSet(mixins.ListModelMixin,
 
     def get_serializer_class(self):
         if self.action == 'add_movie':
-            return serializers.AddMovieSerializer
+            return serializers.MovieAddSerializer
         return serializers.MovieSerializer
 
     @action(methods=['POST'], detail=False, url_path='add_movie')
     def add_movie(self, request):
-        # queryset = Movie.objects.all()
         serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
-            # task here instead of save
             save_movie_task.delay(request.data['link'])
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -76,12 +74,6 @@ class UserProfileViewSet(
     queryset = UserProfile.objects.all()
     permission_classes = [IsAdminUser]
     authentication_classes = [TokenAuthentication]
-
-    # def get_serializer_class(self):
-    #     if self.method == 'my_profie':
-    #         return serializers.MyProfileSerializer
-    #     return self.serializer_class
-
     def _params_to_ints(self, qs):
         return [int(str_id) for str_id in qs.split(',')]
 
@@ -93,16 +85,16 @@ class UserProfileViewSet(
             unfriend_ids = self._params_to_ints(unfriend)
             friends = obj.friends.filter(id__in=unfriend_ids)
             for friend in friends:
-                obj.friends.remove(friend)  # a tu nie
+                obj.friends.remove(friend)  
                 UserProfile.objects.filter(user=friend).get().friends.remove(
-                    self.request.user.id)  # czemu tu musi byc id
+                    self.request.user.id)  
 
         queryset = UserProfile.objects.filter(user=self.request.user).get()
         serializer = self.get_serializer(queryset)
         return Response(serializer.data)
 
 
-# tutaj zmiana na tylko get i retrieve tylko tak zeby dzialal router
+
 class FriendsProfilesViewSet(
         mixins.ListModelMixin,
         mixins.RetrieveModelMixin,
@@ -120,22 +112,6 @@ class FriendsProfilesViewSet(
         return queryset
 
 
-# class PostViewSet(viewsets.ModelViewSet):
-#     serializer_class = serializers.PostSerializer
-#     queryset = Post.objects.all()
-#     permission_classes = [IsAuthenticated]
-#     authentication_classes = [TokenAuthentication]
-
-#     def get_queryset(self):
-#         return Post.objects.filter(user=self.request.user)
-
-#     def perform_create(self, serializer):
-#         serializer.save(user=self.request.user)
-
-#     def get_serializer_class(self):
-#         if self.action == 'add_comment':
-#             return serializers.CommentSerializer
-#         return serializers.PostSerializer
 
 
 @extend_schema_view(

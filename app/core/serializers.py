@@ -6,6 +6,7 @@ from .models import (Comment, Director, FriendRequest, Movie, Post, Reply,
                      User, UserProfile)
 
 
+
 class MovieSerializer(serializers.ModelSerializer):
     director = serializers.CharField()
 
@@ -14,14 +15,9 @@ class MovieSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class MovieMinSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Movie
-        fields = ['title']
-
-
-class AddMovieSerializer(serializers.Serializer):
+class MovieAddSerializer(serializers.Serializer):
     link = serializers.CharField()
+    
 
     class Meta:
         model = Movie
@@ -53,31 +49,9 @@ class FriendRequestSerializerList(serializers.ModelSerializer):
 class FriendRequestSerializerSend(serializers.ModelSerializer):
     class Meta:
         model = FriendRequest
-        fields = ['sender', 'receiver']
+        fields = ['sender','receiver']
         read_only_fields = ['sender']
 
-
-class AcceptingFriendRequestSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FriendRequest
-        fields = ['is_active']
-
-
-# class CommentSerializer(serializers.ModelSerializer):
-#     post_id = serializers.IntegerField(write_only=True)
-#     user = serializers.CharField(source='user.name')
-
-#     class Meta:
-#         model = Comment
-#         fields = ['post_id', 'user', 'comment_date', 'text']
-#         read_only_fields = ['user', 'comment_date']
-
-#     def create(self, validated_data):
-#         post_id = validated_data.pop('post_id')
-#         post = Post.objects.get(id=post_id)
-#         instance = Comment.objects.create(**validated_data)
-#         post.comments.add(instance)
-#         return instance
 
 class ReplyOnCommentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -133,27 +107,6 @@ class PostListingSerializer(serializers.ModelSerializer):
         }
 
 
-# class CommentingPostSerializer(serializers.ModelSerializer):
-#     comments = CommentSerializer(many=True, required=False)
-
-#     class Meta:
-#         model = Post
-#         fields = '__all__'
-#         extra_kwargs = {
-#             "user": {"read_only": True},
-#             'post_date': {"read_only": True}
-#         }
-
-#     # def update(self, validated_data):
-#     #     comment_data = validated_data.pop('comments')
-#     #     post = Post.objects.update(**validated_data)
-
-#     #     for comment in comment_data:
-#     #         Comment.objects.create(post=post, **comment)
-
-#     #     return post
-
-
 class UserProfileSerializer(serializers.ModelSerializer):
     posts = PostListingSerializer(many=True)
     user = serializers.CharField(source='user.name')
@@ -163,4 +116,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ('user', 'top_movies', 'last_watched', 'friends', 'posts')
+        fields = ['user','filmweb_nick','top_movies', 'last_watched', 'friends', 'posts']
+        
+

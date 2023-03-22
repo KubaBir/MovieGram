@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from time import sleep
 from psycopg2 import OperationalError as Psycopg2OpError
-from django.db.utils import OperationalError #error that django throws when db is not ready
+from django.db.utils import OperationalError 
 class Command(BaseCommand):
     def handle(self,*args,**options):
         self.stdout.write('Waiting for database...')

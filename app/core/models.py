@@ -98,6 +98,7 @@ class FriendRequest(models.Model):
                 sender_friend_list.add_friend(self.receiver)
                 self.is_active = False
                 self.save()
+   
 
     def decline(self):
         """Receiver cancels"""
@@ -139,6 +140,8 @@ class UserProfile(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="user")
     top_movies = models.ManyToManyField(Movie, default=None, blank=True)
+    filmweb_nick = models.CharField(max_length=255, default = None, null=True)
+    top_movies = models.ManyToManyField(Movie, default=None)
     last_watched = models.ManyToManyField(
         Movie, default=None, related_name='last_watched', blank=True)
     friends = models.ManyToManyField(
@@ -182,7 +185,7 @@ class UserProfile(models.Model):
 @ receiver(post_save, sender=User)
 def UserProfileCreator(sender, instance=None, created=False, **kwargs):
     if created:
-        UserProfile.objects.create(user=instance)
+        UserProfile.objects.create(user=instance, filmweb_nick = instance.filmweb_nick)
 
         if instance.filmweb_nick != '' and instance.filmweb_nick:
             append_movies.delay(filmweb_nick=instance.filmweb_nick)

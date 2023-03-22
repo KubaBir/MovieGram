@@ -9,3 +9,5 @@ app_name = "friend"
 urlpatterns = [
     path('', include(router.urls))
 ]
+
+print(router.urls)
