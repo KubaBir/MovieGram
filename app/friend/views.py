@@ -5,12 +5,11 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from drf_spectacular.utils import (OpenApiParameter, OpenApiTypes,
                                    extend_schema, extend_schema_view)
-from rest_framework import generics, status, views, viewsets
+from rest_framework import generics, mixins, status, views, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action, api_view
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import mixins
 
 sys.path.append("..")
 # Create your views here.
@@ -38,7 +37,7 @@ sys.path.append("..")
     ]
     )
 )
-class FriendRequestViewSet( mixins.ListModelMixin, viewsets.GenericViewSet):
+class FriendRequestViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     """View for admin """
     serializer_class = serializers.FriendRequestSerializerList
     authentication_classes = [TokenAuthentication]
@@ -78,9 +77,8 @@ class FriendRequestViewSet( mixins.ListModelMixin, viewsets.GenericViewSet):
         self.perform_create(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    
-    @action(methods = ["GET"], detail = True, permission_classes = [IsAuthenticated])
-    def responding_to_invs(self, request,pk= None):
+    @action(methods=["GET"], detail=True, permission_classes=[IsAuthenticated])
+    def responding_to_invs(self, request, pk=None):
         obj = self.get_object()
         accept = self.request.query_params.get('accept')
         if accept == 'true':
