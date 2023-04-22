@@ -1,6 +1,7 @@
-from app.celery import app as celery_app
 from django.contrib.auth import get_user_model
 from utils.scraping_movies import adding_to_profile_func
+
+from app.celery import app as celery_app
 
 
 @celery_app.task

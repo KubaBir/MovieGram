@@ -11,6 +11,8 @@ from rest_framework.test import APIClient
 CREATE_USER_URL = reverse('user:create')
 TOKEN_URL = reverse('user:token')
 ME_URL = reverse('user:me')
+
+
 class CreateUserTests(TestCase):
     """Test User and UserProfile models."""
 
@@ -19,8 +21,8 @@ class CreateUserTests(TestCase):
         email = 'test@example.com'
         password = 'testpass123'
         user = get_user_model().objects.create_user(
-            email = email,
-            password = password
+            email=email,
+            password=password
         )
 
         self.assertEqual(user.email, email)
@@ -29,11 +31,11 @@ class CreateUserTests(TestCase):
     def test_new_user_email_normalized(self):
         """Test email is normalized for new users."""
         sample_emails = [
-            ['test1@EXAMPLE.com','test1@example.com'],
-            ['Test2@example.com','Test2@example.com'],
-            ['TEST3@EXAMPLE.com','TEST3@example.com'],
-            ['test4@example.COM','test4@example.com'],
-                            ]
+            ['test1@EXAMPLE.com', 'test1@example.com'],
+            ['Test2@example.com', 'Test2@example.com'],
+            ['TEST3@EXAMPLE.com', 'TEST3@example.com'],
+            ['test4@example.COM', 'test4@example.com'],
+        ]
         for email, expected in sample_emails:
             user = get_user_model().objects.create_user(email, 'pass123')
             self.assertEqual(user.email, expected)
@@ -41,7 +43,7 @@ class CreateUserTests(TestCase):
     def test_new_user_without_email_raises_error(self):
         """Test that creating a user without an email raises a ValueError."""
         with self.assertRaises(ValueError):
-            get_user_model().objects.create_user('','test123')
+            get_user_model().objects.create_user('', 'test123')
 
     def test_create_superuser(self):
         """Test creating a superuser."""
@@ -60,9 +62,11 @@ def create_user(**params):
 
 
 class PublicUserApiTests(TestCase):
-    """Tests the public features of the user API.""" #public = ones that does not require authenitcation
+    """Tests the public features of the user API."""  # public = ones that does not require authenitcation
+
     def setUp(self):
         self.client = APIClient()
+
     def test_create_user_success(self):
         """Test creating a user is successful."""
         payload = {
@@ -72,7 +76,7 @@ class PublicUserApiTests(TestCase):
         }
         res = self.client.post(CREATE_USER_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        user = get_user_model().objects.get(email = payload['email'])
+        user = get_user_model().objects.get(email=payload['email'])
         self.assertTrue(user.check_password(payload['password']))
         self.assertNotIn('password', res.data)
 
@@ -97,8 +101,8 @@ class PublicUserApiTests(TestCase):
         }
         res = self.client.post(CREATE_USER_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        user_exists = get_user_model().objects.filter(email = payload['email']).exists()
-
+        user_exists = get_user_model().objects.filter(
+            email=payload['email']).exists()
 
         self.assertFalse(user_exists)
 
@@ -124,11 +128,11 @@ class PublicUserApiTests(TestCase):
 
     def test_create_token_bad_credentials(self):
         """Test returns error if credentials invalid."""
-        create_user(email = 'test@example.com', password = 'goodpass')
+        create_user(email='test@example.com', password='goodpass')
 
-        payload = {'email': 'test@example.com', 'password':'badpass'}
+        payload = {'email': 'test@example.com', 'password': 'badpass'}
         res = self.client.post(TOKEN_URL, payload)
-        self.assertNotIn('token',res.data)
+        self.assertNotIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_token_blank_password(self):
@@ -148,23 +152,24 @@ class PublicUserApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class PrivateUserApiTests(TestCase): # we split the thests in 2 classes because we handle the authentication in setUp
+# we split the thests in 2 classes because we handle the authentication in setUp
+class PrivateUserApiTests(TestCase):
     """Test API requests that require authentication"""
 
     def setUp(self):
         self.user = create_user(
-            email ='test@example.com',
-            password = 'testpass123',
-            name = 'TestName',
+            email='test@example.com',
+            password='testpass123',
+            name='TestName',
         )
         self.client = APIClient()
-        self.client.force_authenticate(user = self.user)
+        self.client.force_authenticate(user=self.user)
 
     # def test_retrieve_profile_success(self):
     #     """Test retrieving profile for logged in user."""
     #     res = self.client.get(ME_URL)
     #     self.assertEqual(res.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(res.data, { 
+    #     self.assertEqual(res.data, {
     #         'name': self.user.name,
     #         'email': self.user.email,
     #     })
@@ -186,7 +191,3 @@ class PrivateUserApiTests(TestCase): # we split the thests in 2 classes because 
     #     print(payload['password'])
     #     self.assertTrue(self.user.check_password(payload['password']))
     #     self.assertEqual(res.status_code, status.HTTP_200_OK)
-
-
-
-
