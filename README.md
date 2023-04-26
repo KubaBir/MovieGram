@@ -1,6 +1,15 @@
 # MovieGram
 ## Backend project of a movie forum website.
-This project containts full rest api for movie forum website. It handles:
+### Used Technologies:
+- Python
+- Django
+- Django Rest Framework
+- Docker
+- Redis
+- Celery
+- PostgreSQL
+- BeautifulSoup
+### Prokject handles:
 - Creating custom users
 - Authenticating users
 - Friend system
