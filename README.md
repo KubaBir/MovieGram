@@ -60,5 +60,8 @@ Rest Api in this project is documented and displayed with the use of drf-spectac
 - -//- (GET)
 - {id}/ (GET)
 - {id}/ (DELETE)
+### Schema endpoints:
+/api/schema
+
 
 
