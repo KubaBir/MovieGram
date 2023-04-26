@@ -63,5 +63,6 @@ Rest Api in this project is documented and displayed with the use of drf-spectac
 ### Schema endpoints:
 /api/schema
 
+Project done in collaboration to test github group working skills. 
 
 
