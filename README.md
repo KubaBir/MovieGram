@@ -9,7 +9,7 @@
 - Celery
 - PostgreSQL
 - BeautifulSoup
-### Prokject handles:
+### Project handles:
 - Creating custom users
 - Authenticating users
 - Friend system
